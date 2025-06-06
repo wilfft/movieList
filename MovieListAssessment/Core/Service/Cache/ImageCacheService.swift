@@ -8,10 +8,6 @@
 import UIKit
 import Combine
 
-protocol ImageCacheServiceProtocol {
-    func loadImage(from url: URL) -> AnyPublisher<UIImage, Error>
-}
-
 private class CachedImageItem {
     let image: UIImage
     init(_ image: UIImage) {
@@ -19,7 +15,7 @@ private class CachedImageItem {
     }
 }
  
-class ImageCacheService: ImageCacheServiceProtocol {
+final class ImageCacheService: ImageCacheServiceProtocol {
     static let shared = ImageCacheService()
 
     private let memoryCache = NSCache<NSURL, CachedImageItem>()
@@ -27,11 +23,11 @@ class ImageCacheService: ImageCacheServiceProtocol {
     private let lock = NSLock()
 
     private init() {
-        memoryCache.countLimit = 150 // Ajuste conforme necessário
+        memoryCache.countLimit = 150
         memoryCache.totalCostLimit = 1024 * 1024 * 100 // 100MB
     }
 
-    private func getImage(forKey key: URL) -> UIImage? { // Tornando privado se só usado internamente
+    private func getImage(forKey key: URL) -> UIImage? {
         return memoryCache.object(forKey: key as NSURL)?.image
     }
 
@@ -58,7 +54,6 @@ class ImageCacheService: ImageCacheServiceProtocol {
             .map(\.data)
             .tryMap { data -> UIImage in
                 guard let image = UIImage(data: data) else {
-                    // Usar um erro mais específico ou seu AppError
                     throw NSError(domain: "ImageCacheService", code: 1, userInfo: [NSLocalizedDescriptionKey: "Falha ao decodificar imagem"])
                 }
                 return image
@@ -78,7 +73,6 @@ class ImageCacheService: ImageCacheServiceProtocol {
         return newPublisher
     }
     
-    // Funções de utilidade para o cache
     func clearCache() {
         memoryCache.removeAllObjects()
         // Também limpar loadingResponses se houver algum download pendente que não queremos mais

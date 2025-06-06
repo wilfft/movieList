@@ -8,15 +8,11 @@ import SwiftUI
 import Combine
 
 struct CachedAsyncImageView: View {
-  // @StateObject garante que o ImageLoaderViewModel seja mantido vivo pela View
-  // e recriado apenas se a identidade da View mudar (baseada na URL).
   @StateObject private var imageLoader: ImageLoaderViewModel
   
-  // Placeholder customizável
   private var placeholder: AnyView?
   
   public init(url: URL?, @ViewBuilder placeholder: @escaping () -> some View = { ProgressView() }) {
-    // O _imageLoader é inicializado com o wrappedValue.
     // A URL é a "identidade" para o @StateObject. Se a URL mudar, um novo ImageLoaderViewModel será criado.
     _imageLoader = StateObject(wrappedValue: ImageLoaderViewModel(url: url))
     self.placeholder = AnyView(placeholder())
@@ -26,18 +22,18 @@ struct CachedAsyncImageView: View {
     Group {
       if let uiImage = imageLoader.image {
         Image(uiImage: uiImage)
-          .resizable() // Torna a imagem redimensionável por padrão
+          .resizable()
       } else if imageLoader.isLoading {
-        placeholder // Mostra o placeholder enquanto carrega
+        placeholder
       } else {
-        // Estado de erro ou inicial (URL nula ou falha no carregamento)
-        ZStack { // Usar ZStack para sobrepor um ícone de erro no placeholder
+        
+        ZStack {
           placeholder
-          if imageLoader.errorMessage != nil || imageLoader.url == nil { // Mostrar ícone se erro ou URL nula
-            Image(systemName: "photo.fill.on.rectangle.fill") // Ícone de placeholder/erro
+          if imageLoader.errorMessage != nil || imageLoader.url == nil {
+            Image(systemName: "photo.fill.on.rectangle.fill")
               .resizable()
               .scaledToFit()
-              .frame(width: 30, height: 30) // Ajuste o tamanho do ícone
+              .frame(width: 30, height: 30)
               .foregroundColor(.gray.opacity(0.7))
           }
         }
@@ -46,11 +42,5 @@ struct CachedAsyncImageView: View {
     .onAppear {
       imageLoader.loadImage()
     }
-    // .onDisappear {
-    // imageLoader.cancelLoading() // Opcional: cancelar se a view some.
-    // Pode não ser desejável se você quiser que o download continue em segundo plano
-    // para que a imagem esteja pronta quando a view reaparecer.
-    // Se cancelar, o NSCache ainda manterá a imagem se o download foi concluído.
-    // }
   }
 }

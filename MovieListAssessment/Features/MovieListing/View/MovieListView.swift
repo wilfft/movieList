@@ -12,7 +12,6 @@ struct MovieListView: View {
   @State private var showErrorAlert: Bool = false
   
   init(viewModel: MovieListViewModel = MovieListViewModel()) {
-    // Agora, o corpo deste init está garantido para rodar no MainActor
     _viewModel = StateObject(wrappedValue: viewModel)
   }
   
@@ -45,7 +44,7 @@ struct MovieListView: View {
             .padding()
         }
       }
-      .overlay { // Para loading inicial
+      .overlay { // loading inicial
         if viewModel.isLoading && viewModel.movies.isEmpty {
           ProgressView("Carregando filmes...")
         }

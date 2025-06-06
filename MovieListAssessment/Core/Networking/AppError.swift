@@ -29,7 +29,6 @@ enum AppError: Error, LocalizedError, Equatable {
         }
     }
     
-    // Equatable conformance (simplificado, para testes)
     static func == (lhs: AppError, rhs: AppError) -> Bool {
         switch (lhs, rhs) {
         case (.invalidURL, .invalidURL): return true

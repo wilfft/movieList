@@ -6,3 +6,9 @@
 //
 
 import Foundation
+import Combine
+import UIKit
+
+protocol ImageCacheServiceProtocol {
+    func loadImage(from url: URL) -> AnyPublisher<UIImage, Error>
+}
