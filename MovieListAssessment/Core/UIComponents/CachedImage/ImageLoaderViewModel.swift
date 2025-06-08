@@ -7,8 +7,9 @@
 
 import SwiftUI
 import Combine
+// possibilidade usar frameworks como snapkit
 
-@MainActor
+@MainActor //dispensavel por ja to passando pra main thread no receive
 final class ImageLoaderViewModel: ObservableObject {
   @Published var image: UIImage?
   @Published var isLoading: Bool = false
@@ -25,14 +26,15 @@ final class ImageLoaderViewModel: ObservableObject {
   
   func loadImage() {
     guard let url = url else {
-      
       return
     }
+    
     guard image == nil, !isLoading else { return }
     
     isLoading = true
     errorMessage = nil
     
+    // cancellable, recebe um AnyCancelable, que vem de uma operação assincrono
     cancellable = imageCache.loadImage(from: url)
       .receive(on: DispatchQueue.main)
       .sink(receiveCompletion: { [weak self] completion in
@@ -44,10 +46,5 @@ final class ImageLoaderViewModel: ObservableObject {
       }, receiveValue: { [weak self] loadedImage in
         self?.image = loadedImage
       })
-  }
-  
-  func cancelLoading() {
-    cancellable?.cancel()
-    isLoading = false
   }
 }

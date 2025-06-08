@@ -7,6 +7,7 @@
 
 import Combine
 
+@MainActor
 final class MovieListViewModel: ObservableObject {
   @Published var movies: [Movie] = []
   @Published var isLoading: Bool = false
@@ -15,35 +16,37 @@ final class MovieListViewModel: ObservableObject {
   
   private var currentPage = 1
   private var totalPages = 1
-  private var itensLimits = -5
+  private var offSetToLoadMoreItens = -5
   private let repository: MovieRepositoryProtocol
   
   init(repository: MovieRepositoryProtocol = MovieRepository(apiService: MovieAPIService())) {
     self.repository = repository
   }
   
-  @MainActor
+  // chamda async, nao deveria acessar as funçoes diretamente por isso preciso do mainActor
   func fetchMovies(isInitialLoad: Bool = true) async {
     if isInitialLoad {
       currentPage = 1
-      movies = [] // Limpa para carregamento inicial ou refresh
+      movies = [] // Limpa para carregamento inicial ou refresh, garante na main thread com main actor
       canLoadMorePages = true
     }
     
+    // caso nao estiver carregando e puder trazer mais paginas
     guard !isLoading, canLoadMorePages else { return }
     
-    isLoading = true
+    isLoading = true // ✅ Garantido na main thread
     errorMessage = nil
     
+    // tratamento de requisiçao
     do {
+      // traz os filmes do repositorio, de forma assincrona
       let response = try await repository.getPopularMovies(page: currentPage)
       
       // Adiciona apenas filmes novos para evitar duplicação se a API retornar algo já existente
-      
       let newMovies = response.results.filter { newMovie in
         !self.movies.contains { $0.id == newMovie.id }
       }
-      movies.append(contentsOf: newMovies)
+      movies.append(contentsOf: newMovies) // ✅ Garantido na main thread
       
       totalPages = response.totalPages
       if currentPage >= totalPages {
@@ -61,7 +64,6 @@ final class MovieListViewModel: ObservableObject {
     }
   }
   
-  @MainActor
   func loadMoreMoviesIfNeeded(currentMovie movie: Movie?) async {
     guard let movie = movie else {
       if !isLoading && movies.isEmpty { // Primeiro load se a lista estiver vazia
@@ -71,9 +73,11 @@ final class MovieListViewModel: ObservableObject {
     }
     
     // Carregar quando estiver a 5 itens do fim
-    let thresholdIndex = movies.index(movies.endIndex, offsetBy: -5)
+    // safety: nao permite trazer mais itens enquanto já estiver carregando algum
+    let thresholdIndex = movies.index(movies.endIndex, offsetBy: offSetToLoadMoreItens)
     if movies.firstIndex(where: { $0.id == movie.id }) == thresholdIndex && canLoadMorePages && !isLoading {
       currentPage += 1
+      // ao alcançar 5 items pro fim da lista, traz mais filmes mas não é load inicial
       await fetchMovies(isInitialLoad: false)
     }
   }

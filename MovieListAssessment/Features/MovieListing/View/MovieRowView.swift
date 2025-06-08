@@ -12,7 +12,6 @@ struct MovieRowView: View {
 
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-          
           CachedAsyncImageView(url: movie.posterURL) {
                 ZStack {
                     Color.gray.opacity(0.1)

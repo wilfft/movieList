@@ -7,11 +7,14 @@
 
 import SwiftUI
 
+// DI Container
+// Coordinator
+// Coordinator + DI container
 @main
 struct MovieListAssessmentApp: App {
     var body: some Scene {
         WindowGroup {
-            MovieListView()
+          MovieListView(viewModel: MovieListViewModel())
         }
     }
 }
