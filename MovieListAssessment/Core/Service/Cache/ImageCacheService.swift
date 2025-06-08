@@ -14,7 +14,7 @@ import Combine
 final class ImageCacheService: ImageCacheServiceProtocol {
     static let shared = ImageCacheService()
    // desperdiçaria cache ja carregado
-   //cache de imagem compartilhado com todo o app, acessado por todos.
+   // cache de imagem compartilhado com todo o app, acessado por todos.
 
     let memoryCache = NSCache<NSURL, CachedImageItem>()
     private var loadingResponses: [NSURL: AnyPublisher<UIImage, Error>] = [:] //armazena as urls que estao sendo baixadas
