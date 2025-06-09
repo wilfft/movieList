@@ -7,24 +7,23 @@
 import SwiftUI
 import Combine
 
-  // logica encapsulada, nao consigo acessar de fora (cancelar, reaproveitar)
 struct CachedAsyncImageView: View {
-  @StateObject private var imageLoader: ImageLoaderViewModel // state objeto para manter o estado da VM
+  @StateObject private var imageLoader: ImageLoaderViewModel
   
   private var placeholder: AnyView?
   
   public init(url: URL?, @ViewBuilder placeholder: @escaping () -> some View = { ProgressView() }) {
-    // A URL é a "identidade" para o @StateObject. Se a URL mudar, um novo ImageLoaderViewModel será criado.
+    
     _imageLoader = StateObject(wrappedValue: ImageLoaderViewModel(url: url))
-    self.placeholder = AnyView(placeholder()) //  overhead de performance
+    self.placeholder = AnyView(placeholder())
   }
   
   var body: some View {
     Group {
-      if let uiImage = imageLoader.image { // UIimage
+      if let uiImage = imageLoader.image {
         Image(uiImage: uiImage)
           .resizable()
-      } else if imageLoader.isLoading { // placeholder enquanto carrega
+      } else if imageLoader.isLoading {
         placeholder
       } else {
         ZStack {

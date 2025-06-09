@@ -11,8 +11,6 @@ struct APIEndpoint {
   let path: String
   let method: HTTPMethod
   var queryParameters: [URLQueryItem]
-  // var body: Data? //
-  // var headers: [String: String]?
   
   init(path: String,
        method: HTTPMethod = .get,

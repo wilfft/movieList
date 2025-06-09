@@ -8,17 +8,13 @@
 import UIKit
 import Combine
 
- // opçao usando AsyncAwait
- // troca pra asyc awit pois já uso no API
 
 final class ImageCacheService: ImageCacheServiceProtocol {
     static let shared = ImageCacheService()
-   // desperdiçaria cache ja carregado
-   // cache de imagem compartilhado com todo o app, acessado por todos.
 
     let memoryCache = NSCache<NSURL, CachedImageItem>()
     private var loadingResponses: [NSURL: AnyPublisher<UIImage, Error>] = [:] //armazena as urls que estao sendo baixadas
-    private let lock = NSLock() // thread safety
+    private let lock = NSLock()
 
     private init() {
         memoryCache.countLimit = 150
@@ -26,7 +22,7 @@ final class ImageCacheService: ImageCacheServiceProtocol {
     }
 
     private func getImage(forKey key: URL) -> UIImage? {
-        return memoryCache.object(forKey: key as NSURL)?.image // pego da memoria a key URL
+        return memoryCache.object(forKey: key as NSURL)?.image
     }
 
     private func setImage(_ image: UIImage, forKey key: URL) {
@@ -36,21 +32,19 @@ final class ImageCacheService: ImageCacheServiceProtocol {
     }
 
     func loadImage(from url: URL) -> AnyPublisher<UIImage, Error> {
-        if let cachedImage = getImage(forKey: url) { // pesquisa pela key no cache www.abc.com
-          return Just(cachedImage) // se estiver, retorna imagem
+        if let cachedImage = getImage(forKey: url) {
+          return Just(cachedImage)
                 .setFailureType(to: Error.self)
                 .eraseToAnyPublisher()
         }
 
-        lock.lock() // thread safety-> bloqueia que outras threads acessem a mesma imagem
-        // verifica se já existe uma requisicao pra essa url e retorna o publisher ja existende
+        lock.lock()
         if let existingPublisher = loadingResponses[url as NSURL] {
             lock.unlock()
             return existingPublisher
         }
       
-        // inicia carregamento para puxar a imagem da internet
-        let newPublisher = URLSession.shared.dataTaskPublisher(for: url) // cria um puplisher compartilhado
+        let newPublisher = URLSession.shared.dataTaskPublisher(for: url)
             .map(\.data)
             .tryMap { data -> UIImage in
                 guard let image = UIImage(data: data) else {
@@ -59,8 +53,8 @@ final class ImageCacheService: ImageCacheServiceProtocol {
                 return image
             }
             .handleEvents(receiveOutput: { [weak self] image in
-                self?.setImage(image, forKey: url) // passa a imagem decodificado para uma UIImage
-            }, receiveCompletion: { [weak self] _ in // remove a url da lista de requests em andamento
+                self?.setImage(image, forKey: url)
+            }, receiveCompletion: { [weak self] _ in
                 self?.lock.lock()
                 self?.loadingResponses.removeValue(forKey: url as NSURL)
                 self?.lock.unlock()
@@ -75,7 +69,7 @@ final class ImageCacheService: ImageCacheServiceProtocol {
     
     func clearCache() {
         memoryCache.removeAllObjects()
-        // Também limpar loadingResponses se houver algum download pendente que não queremos mais
+      
         lock.lock()
         loadingResponses.removeAll()
         lock.unlock()

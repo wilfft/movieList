@@ -7,9 +7,6 @@
 
 import SwiftUI
 
-// DI Container
-// Coordinator
-// Coordinator + DI container
 @main
 struct MovieListAssessmentApp: App {
     var body: some Scene {

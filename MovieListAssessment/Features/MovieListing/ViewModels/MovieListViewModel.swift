@@ -23,30 +23,26 @@ final class MovieListViewModel: ObservableObject {
     self.repository = repository
   }
   
-  // chamda async, nao deveria acessar as funçoes diretamente por isso preciso do mainActor
   func fetchMovies(isInitialLoad: Bool = true) async {
     if isInitialLoad {
       currentPage = 1
-      movies = [] // Limpa para carregamento inicial ou refresh, garante na main thread com main actor
+      movies = []
       canLoadMorePages = true
     }
     
-    // caso nao estiver carregando e puder trazer mais paginas
     guard !isLoading, canLoadMorePages else { return }
     
-    isLoading = true // ✅ Garantido na main thread
+    isLoading = true
     errorMessage = nil
     
-    // tratamento de requisiçao
     do {
-      // traz os filmes do repositorio, de forma assincrona
       let response = try await repository.getPopularMovies(page: currentPage)
       
       // Adiciona apenas filmes novos para evitar duplicação se a API retornar algo já existente
       let newMovies = response.results.filter { newMovie in
         !self.movies.contains { $0.id == newMovie.id }
       }
-      movies.append(contentsOf: newMovies) // ✅ Garantido na main thread
+      movies.append(contentsOf: newMovies)
       
       totalPages = response.totalPages
       if currentPage >= totalPages {
@@ -66,18 +62,16 @@ final class MovieListViewModel: ObservableObject {
   
   func loadMoreMoviesIfNeeded(currentMovie movie: Movie?) async {
     guard let movie = movie else {
-      if !isLoading && movies.isEmpty { // Primeiro load se a lista estiver vazia
+      if !isLoading && movies.isEmpty {
         await fetchMovies(isInitialLoad: true)
       }
       return
     }
     
-    // Carregar quando estiver a 5 itens do fim
-    // safety: nao permite trazer mais itens enquanto já estiver carregando algum
     let thresholdIndex = movies.index(movies.endIndex, offsetBy: offSetToLoadMoreItens)
     if movies.firstIndex(where: { $0.id == movie.id }) == thresholdIndex && canLoadMorePages && !isLoading {
       currentPage += 1
-      // ao alcançar 5 items pro fim da lista, traz mais filmes mas não é load inicial
+  
       await fetchMovies(isInitialLoad: false)
     }
   }

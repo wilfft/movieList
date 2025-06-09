@@ -7,7 +7,6 @@
 
 import Foundation
 
-// conhece os detalhes da implementaeçao
 struct MovieAPIService: MovieAPIServiceProtocol {
   private let api: APIService
   private let defaultLanguage = "pt-BR"
@@ -17,7 +16,6 @@ struct MovieAPIService: MovieAPIServiceProtocol {
     self.api = api
   }
   
-  // poderia seguir o OpenCLosed, ao inves de receber somente page, receber um array de URLQueryItem
   func fetchPopularMovies(page: Int) async throws -> MovieApiResponse {
     var allQueryItems: [URLQueryItem] = []
     

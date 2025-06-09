@@ -6,22 +6,16 @@
 //
 import Foundation
 
-// Generico para chamadas pra API
-// nao tem conhecimento da api de Movie, posso reutilizar em outros projetos
-// Reusabilidade - (Princípio da Responsabilidade Única) Aprimorado:
-
 final class APIService {
   private let session: URLSessionProtocol
   private let baseURL: String
   
-  // posso mockar URLSessionProtocol
   init(baseURL: String,
        session: URLSessionProtocol = URLSession.shared) {
     self.baseURL = baseURL
     self.session = session
   }
   
-  // adicionar um Request para enviar no body
   func request<T: Decodable>(
     endpoint: APIEndpoint,
     responseType: T.Type
